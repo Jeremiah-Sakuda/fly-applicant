@@ -1,0 +1,11 @@
+#!/bin/zsh
+# One-command setup and run. Usage: ./run [flyjobs run options]   e.g. ./run --record out/run.mp4 --autostart
+set -e
+cd "$(dirname "$0")"
+if [[ ! -x .venv/bin/python ]]; then
+  python3 -m venv .venv
+  .venv/bin/pip install -q -r requirements.txt
+  .venv/bin/python -m playwright install chromium
+fi
+[[ -f data/manifest.json ]] || .venv/bin/python -m flyjobs prepare
+exec .venv/bin/python -m flyjobs run "$@"

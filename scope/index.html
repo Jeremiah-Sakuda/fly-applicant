@@ -1,0 +1,727 @@
+<title>Fly Applicant</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    --bg:#0a0c11; --panel:#12151d; --panel2:#181c26; --line:#252b38; --line2:#323a4a;
+    --text:#e9e5d9; --muted:#8f95a5; --dim:#5c6273;
+    --neuron:#5cc8e6; --dn:#9bff6b; --sugar:#ffc44d; --bitter:#ff5c8a; --eye:#ff6a5c;
+    --display:'Bricolage Grotesque','Helvetica Neue',Arial,sans-serif;
+    --body:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+    color-scheme:dark;
+  }
+  *{box-sizing:border-box}
+  [hidden]{display:none!important}
+  body{background:var(--bg);color:var(--text);font-family:var(--body);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1100px;margin:0 auto;padding-inline:20px;padding-block:26px 72px}
+  a{color:var(--sugar);text-decoration-thickness:1px;text-underline-offset:3px}
+  a:focus-visible,button:focus-visible{outline:2px solid var(--sugar);outline-offset:2px}
+  h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.05}
+  h1{font-size:clamp(34px,5.4vw,60px);font-weight:700;letter-spacing:-.02em;font-variation-settings:'opsz' 96}
+  h2{font-size:clamp(24px,3vw,34px);font-weight:700;letter-spacing:-.015em;font-variation-settings:'opsz' 60}
+  h3{font-size:18px;font-weight:600}
+  p{margin:0;max-width:66ch}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+  .eyebrow b{color:var(--sugar);font-weight:500}
+  header.top{display:grid;gap:14px;margin-bottom:22px}
+  header.top .lede{font-size:18px;color:var(--muted);max-width:60ch}
+  header.top .lede em{color:var(--text);font-style:normal}
+
+  /* ---------- 3D stage ---------- */
+  .stage{position:relative;width:100%;aspect-ratio:16/9;max-height:600px;background:#07080c;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+  @media (max-width:700px){.stage{aspect-ratio:4/5;max-height:none}}
+  .stage canvas{display:block;width:100%;height:100%;touch-action:pan-y;cursor:grab}
+  .stage canvas:active{cursor:grabbing}
+  .hud{position:absolute;inset:0;pointer-events:none;font-family:var(--mono);font-size:12px;line-height:1.4}
+  .hud .tl{position:absolute;left:14px;top:12px;color:var(--muted)}
+  .hud .tl b{display:block;color:var(--text);font-weight:500}
+  .hud .tr{position:absolute;right:14px;top:12px;text-align:right}
+  .hud .tr .n{font-family:var(--display);font-size:clamp(28px,4vw,44px);font-weight:700;line-height:1;letter-spacing:-.02em;color:var(--text);font-variant-numeric:tabular-nums}
+  .hud .tr .n small{font-size:.45em;color:var(--dim);font-weight:500;letter-spacing:0}
+  .hud .tr .lab{color:var(--muted);letter-spacing:.1em;text-transform:uppercase;font-size:11px}
+  .hud .tr .sub{margin-top:6px;color:var(--muted)}
+  .hud .tr .sub i{font-style:normal;font-variant-numeric:tabular-nums}
+  .hud .tr .sub .s{color:var(--sugar)} .hud .tr .sub .b{color:var(--bitter)}
+  .legend{position:absolute;left:14px;bottom:110px;display:grid;gap:5px;color:var(--muted)}
+  .legend span{display:flex;align-items:center;gap:8px}
+  .legend i{width:8px;height:8px;border-radius:50%;box-shadow:0 0 8px currentColor;background:currentColor;display:inline-block}
+  .meters{position:absolute;right:14px;bottom:110px;display:grid;gap:6px;width:min(180px,40%)}
+  .meter{display:grid;grid-template-columns:52px 1fr;align-items:center;gap:8px;color:var(--muted)}
+  .meter .bar{height:4px;background:var(--line);border-radius:2px;overflow:hidden}
+  .meter .bar i{display:block;height:100%;width:0;background:var(--sugar);transition:width 2.4s ease-out}
+  .meter.bitter .bar i{background:var(--bitter)}
+  .meter .bar i.hit{width:100%;transition:none}
+  .ctl{position:absolute;left:0;right:0;bottom:0;padding:12px 14px;display:flex;flex-wrap:wrap;gap:8px;align-items:flex-end;justify-content:space-between;pointer-events:auto;background:linear-gradient(to top,rgba(7,8,12,.92),rgba(7,8,12,0))}
+  .btns{display:flex;flex-wrap:wrap;gap:6px}
+  .btn{font:500 12px/1 var(--mono);letter-spacing:.04em;color:var(--text);background:rgba(18,21,29,.85);border:1px solid var(--line2);border-radius:4px;padding:9px 11px;cursor:pointer}
+  .btn:hover{border-color:var(--muted)}
+  .btn.run{border-color:var(--sugar);color:var(--sugar)}
+  .btn.run[aria-pressed="true"]{background:var(--sugar);color:#1a1200}
+  .btn.dn{color:var(--dn)} .btn.sg{color:var(--sugar)} .btn.bt{color:var(--bitter)}
+  .log{list-style:none;margin:0;padding:0;font-family:var(--mono);font-size:11.5px;color:var(--muted);min-width:min(320px,100%);flex:1 1 320px;max-width:520px}
+  .log li{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+  .log li.a{color:var(--dn)} .log li.s{color:var(--sugar)} .log li.b{color:var(--bitter)} .log li.w{color:var(--text)}
+  .nogl{position:absolute;inset:0;display:grid;place-items:center;color:var(--muted);font-family:var(--mono);font-size:13px;padding:20px;text-align:center}
+  .stagecap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px 20px;margin-top:10px;font-size:13px;color:var(--muted)}
+  .stagecap code{font-family:var(--mono);color:var(--text);font-size:12.5px}
+
+  /* ---------- sections ---------- */
+  section{margin-top:64px;display:grid;gap:20px}
+  .sechead{display:grid;gap:8px}
+  .sechead p{color:var(--muted)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:28px}
+  @media (max-width:760px){.grid2{grid-template-columns:1fr}}
+
+  /* script */
+  .script{display:grid;gap:0;border-top:1px solid var(--line)}
+  .beat{display:grid;grid-template-columns:96px 1fr 1fr;gap:16px;padding:16px 0;border-bottom:1px solid var(--line);align-items:start}
+  @media (max-width:760px){.beat{grid-template-columns:76px 1fr}.beat .on{grid-column:2}}
+  .beat .tc{font-family:var(--mono);font-size:12.5px;color:var(--sugar);font-variant-numeric:tabular-nums;padding-top:3px}
+  .beat .tc small{display:block;color:var(--dim);font-size:11px;letter-spacing:.08em;text-transform:uppercase;margin-top:2px}
+  .beat .vo{font-family:var(--display);font-variation-settings:'opsz' 24;font-size:19px;font-weight:500;line-height:1.3}
+  .beat .on{font-size:14px;color:var(--muted)}
+  .beat .on b{color:var(--text);font-weight:500}
+  .caption{margin-top:6px;font-family:var(--mono);font-size:13px;color:var(--text);background:var(--panel);border:1px solid var(--line);padding:12px 14px;border-radius:4px;max-width:520px}
+  .caption span{color:var(--muted)}
+
+  /* pipeline */
+  .pipe{overflow-x:auto;border:1px solid var(--line);border-radius:6px;background:var(--panel)}
+  .pipe svg{display:block;min-width:720px;width:100%;height:auto}
+  .pipe text{font-family:var(--mono);font-size:12px;fill:var(--text)}
+  .pipe text.sm{font-size:10.5px;fill:var(--muted)}
+  .pipe rect.box{fill:var(--panel2);stroke:var(--line2)}
+  .pipe rect.hot{stroke:var(--sugar)}
+  .pipe rect.cold{stroke:var(--neuron)}
+  .pipe path.a{fill:none;stroke:var(--muted);stroke-width:1.3}
+  .pipe path.s{stroke:var(--sugar)} .pipe path.b{stroke:var(--bitter)} .pipe path.d{stroke:var(--dn)}
+
+  /* facts / honesty */
+  .fact{display:grid;gap:6px;padding:16px;background:var(--panel);border:1px solid var(--line);border-radius:6px}
+  .fact h3{display:flex;align-items:center;gap:10px}
+  .fact h3 i{width:9px;height:9px;border-radius:50%;display:inline-block}
+  .fact ul{margin:0;padding-left:18px;color:var(--muted);font-size:14.5px;display:grid;gap:5px}
+  .fact ul b{color:var(--text);font-weight:500}
+
+  /* phases */
+  .phases{display:grid;gap:0;border-top:1px solid var(--line)}
+  .phase{display:grid;grid-template-columns:120px 1fr 150px;gap:16px;padding:18px 0;border-bottom:1px solid var(--line);align-items:start}
+  @media (max-width:760px){.phase{grid-template-columns:1fr}.phase .est{text-align:left}}
+  .phase .id{font-family:var(--mono);font-size:12px;color:var(--sugar);letter-spacing:.06em;padding-top:3px}
+  .phase .id small{display:block;color:var(--dim);margin-top:2px;letter-spacing:.02em}
+  .phase h3{margin-bottom:6px}
+  .phase p{color:var(--muted);font-size:15px}
+  .phase ul{margin:8px 0 0;padding-left:18px;color:var(--muted);font-size:14.5px;display:grid;gap:4px}
+  .phase ul b{color:var(--text);font-weight:500}
+  .phase .est{font-family:var(--mono);font-size:12.5px;color:var(--text);text-align:right;padding-top:3px;font-variant-numeric:tabular-nums}
+  .phase .est small{display:block;color:var(--dim);font-size:11px;margin-top:3px}
+  .total{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-family:var(--mono);font-size:13px;color:var(--muted);padding-top:12px}
+  .total b{color:var(--text);font-weight:500}
+
+  /* spec table */
+  .spec{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+  .spec div{padding:12px 14px;border:1px solid var(--line);border-radius:4px;background:var(--panel)}
+  .spec .k{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+  .spec .v{font-size:15px;margin-top:4px}
+  .spec .v code{font-family:var(--mono);font-size:13px}
+
+  .result{display:grid;grid-template-columns:minmax(0,300px) 1fr;gap:28px;align-items:start;margin-bottom:40px}
+  @media (max-width:760px){.result{grid-template-columns:1fr}}
+  .result video{width:100%;max-width:300px;aspect-ratio:9/16;background:#07080c;border:1px solid var(--line);border-radius:6px;display:block}
+  .stills{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .stills figure{margin:0;display:grid;gap:6px}
+  .stills img{width:100%;aspect-ratio:9/16;object-fit:cover;border:1px solid var(--line);border-radius:4px;background:#07080c}
+  .stills figcaption{font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+  .runstats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+  .runstats div{padding:10px 12px;border:1px solid var(--line);border-radius:4px;background:var(--panel)}
+  .runstats .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+  .runstats .v{font-family:var(--display);font-size:24px;font-weight:700;font-variant-numeric:tabular-nums;margin-top:2px}
+  .runstats .v small{font-family:var(--body);font-size:12px;font-weight:400;color:var(--muted)}
+  .rtext{display:grid;gap:16px}
+  .rtext p{color:var(--muted);font-size:15px}
+  .rtext p b{color:var(--text);font-weight:500}
+  .rtext code{font-family:var(--mono);font-size:13px;color:var(--text);background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:2px 6px}
+  .done{color:var(--dn)!important}
+  footer{margin-top:56px;padding-top:16px;border-top:1px solid var(--line);font-size:13px;color:var(--muted);display:grid;gap:6px}
+  @media (prefers-reduced-motion:reduce){.meter .bar i{transition:none}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="eyebrow">Built <b>·</b> MaleCNS v1.0 <b>·</b> 9:16, 35 seconds</div>
+    <h1>A fruit fly's brain applies to 1,000 jobs a day.</h1>
+    <p class="lede">Built for real: the whole-CNS connectome simulated, every <em>DNg100</em> spike clicking <em>Easy Apply</em> in a real browser, and each interview or rejection fed back into the fly's sugar or bitter taste neurons. The recorded run and the cut reel are below. The interactive fly further down is the original concept sketch.</p>
+  </header>
+
+
+  <section id="result" style="margin-top:0">
+    <div class="result">
+      <video src="reel.mp4" poster="still_brain.jpg" controls playsinline muted loop preload="metadata" aria-label="The 35 second reel"></video>
+      <div class="rtext">
+        <div class="sechead"><div class="eyebrow">00 · The run</div><h2>1,000 applications, 981 rejections, one callback</h2></div>
+        <div class="runstats">
+          <div><div class="k">Run length</div><div class="v">30 <small>min</small></div></div>
+          <div><div class="k">Applications</div><div class="v">1,000</div></div>
+          <div><div class="k">Rejections</div><div class="v">981</div></div>
+          <div><div class="k">Interviews</div><div class="v">1</div></div>
+          <div><div class="k">Slowest no</div><div class="v">4 <small>min</small></div></div>
+          <div><div class="k">Résumés retyped</div><div class="v">27</div></div>
+        </div>
+        <p><b>Every click came from a DNg100 spike.</b> Nothing on the browser side decides when to act. The sim ran at about 0.81× real time with 166,700 neurons and 25.6 million connections, which works out to roughly one application per 1.1 seconds.</p>
+        <p><b>The 3D studio is live, not a render.</b> The hologram fly sits at a tiny desk. Its monitor shows the actual board page streamed from the browser. The head holds 140,638 neurons at their real soma positions, and DNg100's traced skeleton carries each spike down the neck.</p>
+        <p><b>Run it yourself</b> with <code>./run --autostart</code> in the Fly folder, then <code>python -m flyjobs cut out/run.mp4</code> for the reel.</p>
+      </div>
+    </div>
+    <div class="stills">
+      <figure><img src="still_desk.jpg" alt="Wide shot: hologram fly at a desk facing a vertical monitor showing the job board"><figcaption>desk · the fly at work</figcaption></figure>
+      <figure><img src="still_screen.jpg" alt="Over-the-shoulder shot of the Workdaze form on the monitor, half-typed gibberish in the résumé box"><figcaption>screen · Workdaze, one letter per spike</figcaption></figure>
+      <figure><img src="still_brain.jpg" alt="Close-up of the brain: blue soma cloud, green DNg100 skeleton, pink bitter neurons lit"><figcaption>brain · bitter neurons firing</figcaption></figure>
+    </div>
+  </section>
+
+  <div class="stage" id="stage">
+    <canvas id="c" aria-label="Interactive 3D fruit fly with a glowing connectome. Drag to rotate."></canvas>
+    <div class="nogl" id="nogl" hidden>WebGL is unavailable here. The 3D fly needs a browser with WebGL enabled.</div>
+    <div class="hud">
+      <div class="tl">
+        <b>MaleCNS v1.0 · brain + ventral nerve cord</b>
+        166,700 neurons in the real dataset<br>
+        <span id="somas">0</span> stand-in somas rendered on the rind
+      </div>
+      <div class="tr">
+        <div class="lab">Applications today</div>
+        <div class="n"><span id="apps">0</span><small> / 1,000</small></div>
+        <div class="sub"><i class="s" id="ints">0</i> interviews · <i class="b" id="rejs">0</i> rejections</div>
+      </div>
+      <div class="legend">
+        <span style="color:var(--neuron)"><i></i> neuron soma</span>
+        <span style="color:var(--dn)"><i></i> DNg100 → forward / apply</span>
+        <span style="color:var(--sugar)"><i></i> sugar GRNs (reward)</span>
+        <span style="color:var(--bitter)"><i></i> bitter GRNs (punishment)</span>
+      </div>
+      <div class="meters">
+        <div class="meter"><span>sugar</span><div class="bar"><i id="mS"></i></div></div>
+        <div class="meter bitter"><span>bitter</span><div class="bar"><i id="mB"></i></div></div>
+      </div>
+      <div class="ctl">
+        <div class="btns">
+          <button class="btn run" id="btnRun" type="button" aria-pressed="false">Run the job loop</button>
+          <button class="btn dn" id="btnDn" type="button">Fire DNg100</button>
+          <button class="btn sg" id="btnSugar" type="button">Interview</button>
+          <button class="btn bt" id="btnBitter" type="button">Rejection</button>
+        </div>
+        <ul class="log" id="log" aria-live="polite">
+          <li class="w">idle · spontaneous activity only</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="stagecap">
+    <span>Concept sketch from the scoping pass. The built studio uses real soma positions instead.</span>
+    <span>Drag to rotate.</span>
+  </div>
+
+  <!-- ---------------- Script ---------------- -->
+  <section id="script">
+    <div class="sechead">
+      <div class="eyebrow">01 · The reel</div>
+      <h2>Script, 35 seconds, portrait split-screen</h2>
+      <p>Fly viewer on the top half of the frame, the job board and inbox on the bottom half. Counter burned in at the top right the whole time.</p>
+    </div>
+    <div class="script">
+      <div class="beat">
+        <div class="tc">0:00–0:03<small>Hook</small></div>
+        <div class="vo">"I gave a fruit fly's brain a LinkedIn account."</div>
+        <div class="on"><b>On screen:</b> hard cut to the split. Fly is already rotating, board is already scrolling. No title card.</div>
+      </div>
+      <div class="beat">
+        <div class="tc">0:03–0:10<small>Setup</small></div>
+        <div class="vo">"This is the full MaleCNS connectome. 166,700 neurons. One of them, DNg100, tells a real fly to walk forward. Now it scrolls job postings."</div>
+        <div class="on"><b>On screen:</b> push in on the head. DNg100 lights up green and the spike travels down the neck into the nerve cord. Each spike, the board scrolls and clicks <b>Easy Apply</b>.</div>
+      </div>
+      <div class="beat">
+        <div class="tc">0:10–0:20<small>Reward</small></div>
+        <div class="vo">"Sugar neurons fire when it lands an interview. Bitter neurons fire when it gets rejected. It gets rejected a lot."</div>
+        <div class="on"><b>On screen:</b> the subesophageal zone flashes amber once, then pink over and over. Counter climbs to 1,000 in a time-lapse.</div>
+      </div>
+      <div class="beat">
+        <div class="tc">0:20–0:32<small>Montage</small></div>
+        <div class="vo">(no VO, just the inbox sounds)</div>
+        <div class="on"><b>On screen:</b> rejection email four minutes after applying. Workday asking it to retype the résumé it just uploaded. "We've decided to move forward with other flies." A recruiter InMail about an "exciting opportunity in vinegar."</div>
+      </div>
+      <div class="beat">
+        <div class="tc">0:32–0:35<small>Closer</small></div>
+        <div class="vo">"It got a callback. I didn't."</div>
+        <div class="on"><b>On screen:</b> freeze on the one amber flash. Cut to black with the caption.</div>
+      </div>
+    </div>
+    <div class="caption">technically it's button mashing. <span>so is my job search.</span></div>
+  </section>
+
+  <!-- ---------------- How it works ---------------- -->
+  <section id="loop">
+    <div class="sechead">
+      <div class="eyebrow">02 · The loop</div>
+      <h2>How the fly actually applies</h2>
+      <p>One closed loop, which is the thing most viral fly demos skip. The board's outcome goes back into the brain as taste-neuron stimulation.</p>
+    </div>
+    <div class="pipe">
+      <svg viewBox="0 0 900 300" role="img" aria-label="Pipeline: connectome simulation feeds a descending-neuron readout, which drives Playwright against a mock job board. Board outcomes stimulate sugar or bitter taste neurons back in the simulation. The simulation also streams spikes to the 3D viewer.">
+        <defs>
+          <marker id="m" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#8f95a5"/></marker>
+          <marker id="ms" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#ffc44d"/></marker>
+          <marker id="mb" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#ff5c8a"/></marker>
+          <marker id="md" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#9bff6b"/></marker>
+        </defs>
+        <!-- row 1 -->
+        <rect class="box cold" x="30" y="40" width="180" height="64" rx="4"/>
+        <text x="44" y="66">Connectome LIF sim</text>
+        <text class="sm" x="44" y="86">MaleCNS wiring · GPU · 1 ms steps</text>
+
+        <rect class="box" x="260" y="40" width="180" height="64" rx="4"/>
+        <text x="274" y="66">DN readout</text>
+        <text class="sm" x="274" y="86">DNg100 rate &gt; θ → click</text>
+
+        <rect class="box" x="490" y="40" width="160" height="64" rx="4"/>
+        <text x="504" y="66">Playwright</text>
+        <text class="sm" x="504" y="86">scroll · click · submit</text>
+
+        <rect class="box hot" x="700" y="40" width="170" height="64" rx="4"/>
+        <text x="714" y="66">Mock job board</text>
+        <text class="sm" x="714" y="86">+ inbox · scripted timing</text>
+
+        <path class="a" d="M210 72H258" marker-end="url(#m)"/>
+        <path class="a" d="M440 72H488" marker-end="url(#m)"/>
+        <path class="a" d="M650 72H698" marker-end="url(#m)"/>
+
+        <!-- row 2 -->
+        <rect class="box hot" x="700" y="180" width="170" height="64" rx="4"/>
+        <text x="714" y="206">Outcome event</text>
+        <text class="sm" x="714" y="226">interview · rejection · retype</text>
+
+        <rect class="box" x="260" y="180" width="390" height="64" rx="4"/>
+        <text x="274" y="206">GRN stimulation</text>
+        <text class="sm" x="274" y="226">interview → sugar GRNs (LB3c) · rejection → bitter GRNs (LB1a–d)</text>
+
+        <rect class="box cold" x="30" y="180" width="180" height="64" rx="4"/>
+        <text x="44" y="206">3D viewer</text>
+        <text class="sm" x="44" y="226">spikes over WebSocket</text>
+
+        <path class="a" d="M785 104V178" marker-end="url(#m)"/>
+        <path class="a s" d="M698 200H652" marker-end="url(#ms)"/>
+        <path class="a b" d="M698 224H652" marker-end="url(#mb)"/>
+        <path class="a" d="M260 212H235V72" marker-end="url(#m)" transform="translate(0 0)"/>
+        <path class="a d" d="M120 104V178" marker-end="url(#md)"/>
+        <text class="sm" x="128" y="146">every spike</text>
+        <text class="sm" x="790" y="146">after 2–9 min</text>
+      </svg>
+    </div>
+    <div class="grid2">
+      <div class="fact">
+        <h3><i style="background:var(--dn)"></i>What is real</h3>
+        <ul>
+          <li><b>The wiring.</b> Every synapse in the sim comes from the MaleCNS v1.0 connectome, brain and ventral nerve cord together.</li>
+          <li><b>The dynamics.</b> Leaky integrate-and-fire over that wiring, the same class of model behind the viral demos and the 2024 whole-brain fly papers.</li>
+          <li><b>The neuron identities.</b> DNg100 is a named descending neuron, 2 cells. The 23 sugar neurons are LB3c (Gr64f+) and the 38 bitter neurons are LB1a–d (Gr33a+), matched in the 2026 gustatory connectome paper in <i>Cell</i>.</li>
+          <li><b>The clicks.</b> Playwright only acts when the readout neuron crosses threshold. Nothing is scripted on the browser side.</li>
+        </ul>
+      </div>
+      <div class="fact">
+        <h3><i style="background:var(--bitter)"></i>What is not</h3>
+        <ul>
+          <li><b>Sensing.</b> The fly never sees the posting. Its only input is the reward and punishment we inject, so the output is noise shaped by the wiring.</li>
+          <li><b>Learning.</b> Nothing in the loop changes synaptic weights, so it cannot get better at applying. That is the joke and the caption says so.</li>
+          <li><b>The job board.</b> A local mock with an endless feed and one giant Easy Apply button. Real portals would dump 1,000 junk applications into real recruiters' queues.</li>
+          <li><b>The effect of taste.</b> Sugar and bitter input light up the taste neurons but do not measurably change DNg100's click rate, tested across seeds. It cannot learn to apply better.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ---------------- Build plan ---------------- -->
+  <section id="build">
+    <div class="sechead">
+      <div class="eyebrow">03 · What got built</div>
+      <h2>All five phases shipped</h2>
+      <p>The original plan, with notes on where the build departed from it.</p>
+    </div>
+    <div class="phases">
+      <div class="phase">
+        <div class="id">PHASE 0<small>no deps</small></div>
+        <div>
+          <h3>Mock job board and inbox</h3>
+          <p>A single local web app: infinite feed of generated postings, an Easy Apply button that fills the viewport, a Workday-parody form that forgets the uploaded résumé, and an inbox pane that receives scripted rejections on a timer.</p>
+          <ul>
+            <li><b>Stack:</b> one Node process, Express plus a static page. No database, state in memory, seeded so the montage is repeatable.</li>
+            <li><b>Events:</b> the board POSTs <b>applied</b>, <b>rejected</b>, <b>interview</b>, <b>retype</b> to a local event bus the sim subscribes to.</li>
+            <li><b>Comic timing knobs:</b> rejection latency, interview rate (start at 0.8%), copy bank for rejection emails.</li>
+          </ul>
+        </div>
+        <div class="est done">Done<small>aiohttp, not Express</small></div>
+      </div>
+      <div class="phase">
+        <div class="id">PHASE 1<small>no deps</small></div>
+        <div>
+          <h3>Brain sim with the right neurons wired to the right pins</h3>
+          <p>Start from the Mario 64 fly repo cited in the earlier chat, which already maps neurons to controller buttons, or from the published whole-brain LIF code. Pull the MaleCNS connectivity from neuPrint, look up the neuron IDs by cell type, and expose three pins.</p>
+          <ul>
+            <li><b>Output pin:</b> DNg100 spike rate over a 200 ms window. Above threshold means "apply." A second DN can drive "scroll."</li>
+            <li><b>Input pins:</b> a current injection into LB3c sugar GRNs, and one into LB1a–d bitter GRNs, each held for 500 ms per event.</li>
+            <li><b>Spike stream:</b> every spike goes out as (neuron id, t) over a WebSocket for the viewer. Downsample to the neurons that exist in the mesh set.</li>
+            <li><b>Risk:</b> DNg100 may sit silent without sensory drive. Fallback is background Poisson input to sensory neurons so the brain idles at a realistic rate.</li>
+          </ul>
+        </div>
+        <div class="est done">Done<small>runs on CPU, 0.8–0.9× real time</small></div>
+      </div>
+      <div class="phase">
+        <div class="id">PHASE 2<small>needs 0, 1</small></div>
+        <div>
+          <h3>Playwright glue</h3>
+          <p>A loop of about 80 lines: read the DN rate, act on the board when it crosses threshold, forward board events into the input pins. Headed browser so it can be screen-captured.</p>
+          <ul>
+            <li><b>Rate limit:</b> one action per 700 ms max, otherwise 1,000 applications takes 12 minutes and the time-lapse is boring.</li>
+            <li><b>Counter overlay:</b> the board renders the burned-in counter itself, so the capture needs no compositing.</li>
+          </ul>
+        </div>
+        <div class="est done">Done<small>one click per spike</small></div>
+      </div>
+      <div class="phase">
+        <div class="id">PHASE 3<small>needs 1</small></div>
+        <div>
+          <h3>3D viewer with real geometry</h3>
+          <p>Keep this page's renderer and swap the stand-in for the real thing. Portrait render mode at 1080×1920 with the same HUD.</p>
+          <ul>
+            <li><b>Neuropil meshes:</b> the MaleCNS dataset on neuPrint exposes brain and VNC region meshes. Fetch with navis, decimate, export glTF, load with three's GLTFLoader.</li>
+            <li><b>DNg100 skeleton:</b> pull the SWC, render as a polyline with the same traveling pulse this page uses.</li>
+            <li><b>Soma cloud:</b> real soma positions from the annotation table, one point per neuron, typed by cell class so the sugar and bitter clusters light in the right place.</li>
+            <li><b>Live:</b> subscribe to the spike WebSocket and flash the matching points. The hologram body stays; nobody needs a photoreal fly.</li>
+          </ul>
+        </div>
+        <div class="est done">Done<small>fly at a desk, live monitor</small></div>
+      </div>
+      <div class="phase">
+        <div class="id">PHASE 4<small>needs all</small></div>
+        <div>
+          <h3>Capture and cut</h3>
+          <p>Two OBS sources stacked in a 9:16 canvas: viewer on top, board and inbox below. Record one 12-minute run, cut the time-lapse, record the VO last against picture.</p>
+          <ul>
+            <li><b>Deliverable:</b> 1080×1920, 30 fps, 35 s, captions burned in, plus the honest caption as the post text.</li>
+            <li><b>Sound:</b> inbox ping on every rejection, one warmer chime on the interview.</li>
+          </ul>
+        </div>
+        <div class="est done">Done<small>automatic edit, no OBS</small></div>
+      </div>
+    </div>
+    <div class="total"><span>Departures</span><b>DN spike, not rate threshold · vertical monitor in 3D, not split-screen · CDP capture, not OBS</b></div>
+  </section>
+
+  <!-- ---------------- Spec ---------------- -->
+  <section id="spec">
+    <div class="sechead">
+      <div class="eyebrow">04 · Numbers to keep straight</div>
+      <h2>Spec sheet</h2>
+    </div>
+    <div class="spec">
+      <div><div class="k">Dataset</div><div class="v">MaleCNS v1.0, HHMI Janelia and Google Research, released 3 Sep 2026</div></div>
+      <div><div class="k">Neurons</div><div class="v">166,700 across brain and ventral nerve cord, 25.6M connections</div></div>
+      <div><div class="k">Output neuron</div><div class="v"><code>DNg100</code>, descending, forward locomotion</div></div>
+      <div><div class="k">Reward input</div><div class="v"><code>LB3c</code> sugar GRNs (Gr64f+), 23 cells</div></div>
+      <div><div class="k">Punishment input</div><div class="v"><code>LB1a–d</code> bitter GRNs (Gr33a+), 38 cells</div></div>
+      <div><div class="k">Target</div><div class="v">1,000 applications in one 30-minute run</div></div>
+      <div><div class="k">Frame</div><div class="v">1080×1920, 30 fps, one 3D scene with the board on the fly's monitor</div></div>
+      <div><div class="k">Interviews</div><div class="v">Exactly one, scripted on application 612</div></div>
+    </div>
+  </section>
+
+  <footer>
+    <span>Data prep and LIF parameters follow Fly64 (github.com/ornata/fly). Connectome and skeletons from the public MaleCNS v1.0 bucket.</span>
+    <span>Companies in the demo log are made up. Any resemblance to Drosophila Dynamics is intentional.</span>
+  </footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(function(){
+  'use strict';
+  var stage = document.getElementById('stage');
+  var canvas = document.getElementById('c');
+  var reduced = false;
+  try { reduced = matchMedia('(prefers-reduced-motion: reduce)').matches; } catch(e){}
+  if (typeof THREE === 'undefined') { document.getElementById('nogl').hidden = false; return; }
+  var renderer;
+  try {
+    renderer = new THREE.WebGLRenderer({canvas: canvas, antialias: true, alpha: false, powerPreference: 'high-performance'});
+  } catch(e) { document.getElementById('nogl').hidden = false; return; }
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.setClearColor(0x07080c, 1);
+
+  var scene = new THREE.Scene();
+  var camera = new THREE.PerspectiveCamera(32, 1, 0.1, 100);
+  var pivot = new THREE.Group();  // pitch
+  var fly = new THREE.Group();    // yaw
+  pivot.add(fly); scene.add(pivot);
+  fly.position.x = -0.15;
+  fly.rotation.y = -0.75;
+  pivot.rotation.x = 0.12;
+
+  var COL = { neuron: 0x5cc8e6, dn: 0x9bff6b, sugar: 0xffc44d, bitter: 0xff5c8a, eye: 0xff6a5c, body: 0x7d8ba6 };
+
+  /* ---------- hologram body ---------- */
+  var sphere = new THREE.SphereGeometry(1, 20, 12);
+  function holo(geo, pos, scale, rot, color, fillOp, lineOp){
+    var g = new THREE.Group();
+    var fill = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({color: color, transparent: true, opacity: fillOp, depthWrite: false, side: THREE.DoubleSide}));
+    fill.renderOrder = 0;
+    var edges = new THREE.LineSegments(new THREE.EdgesGeometry(geo, 1), new THREE.LineBasicMaterial({color: color, transparent: true, opacity: lineOp}));
+    edges.renderOrder = 1;
+    g.add(fill); g.add(edges);
+    g.position.set(pos[0], pos[1], pos[2]);
+    if (scale) g.scale.set(scale[0], scale[1], scale[2]);
+    if (rot) g.rotation.set(rot[0], rot[1], rot[2]);
+    fly.add(g); return g;
+  }
+  holo(sphere, [1.78, 0.05, 0], [0.55, 0.6, 0.62], null, COL.body, 0.045, 0.16);           // head
+  holo(sphere, [1.92, 0.1, -0.42], [0.3, 0.36, 0.26], [0, 0, 0.1], COL.eye, 0.07, 0.35);     // right eye
+  holo(sphere, [1.92, 0.1, 0.42], [0.3, 0.36, 0.26], [0, 0, 0.1], COL.eye, 0.07, 0.35);      // left eye
+  holo(sphere, [0.55, 0.15, 0], [0.95, 0.8, 0.78], null, COL.body, 0.04, 0.16);             // thorax
+  holo(sphere, [-1.15, -0.02, 0], [1.2, 0.7, 0.74], [0, 0, 0.05], COL.body, 0.04, 0.16);    // abdomen
+  holo(sphere, [-0.42, 0.34, -0.72], [0.07, 0.07, 0.07], null, COL.body, 0.2, 0.5);          // halteres
+  holo(sphere, [-0.42, 0.34, 0.72], [0.07, 0.07, 0.07], null, COL.body, 0.2, 0.5);
+
+  function wingGeo(){
+    var s = new THREE.Shape();
+    s.moveTo(0, 0);
+    s.bezierCurveTo(-0.3, 0.4, -1.5, 0.95, -2.7, 0.8);
+    s.bezierCurveTo(-3.15, 0.72, -3.15, 0.4, -2.7, 0.34);
+    s.bezierCurveTo(-1.5, 0.12, -0.6, -0.05, 0, 0);
+    var g = new THREE.ShapeGeometry(s, 14);
+    g.rotateX(-Math.PI / 2);
+    return g;
+  }
+  var wg = wingGeo();
+  var wr = holo(wg, [0.5, 0.62, -0.18], null, [0.16, 0, 0], COL.body, 0.05, 0.3);
+  var wl = holo(wg, [0.5, 0.62, 0.18], [1, 1, -1], [-0.16, 0, 0], COL.body, 0.05, 0.3);
+
+  function polyline(pts, color, op){
+    var geo = new THREE.BufferGeometry().setFromPoints(pts.map(function(p){ return new THREE.Vector3(p[0], p[1], p[2]); }));
+    var l = new THREE.Line(geo, new THREE.LineBasicMaterial({color: color, transparent: true, opacity: op}));
+    l.renderOrder = 1; fly.add(l); return l;
+  }
+  function leg(ax, az, side, kind){
+    var f = kind === 0 ? 0.6 : kind === 1 ? 0.05 : -0.65;
+    polyline([
+      [ax, -0.32, az * side],
+      [ax + f * 0.45, 0.3, (az + 0.5) * side],
+      [ax + f * 0.95, -0.5, (az + 0.95) * side],
+      [ax + f * 1.25, -0.98, (az + 1.18) * side],
+      [ax + f * 1.35 + 0.18, -1.0, (az + 1.3) * side]
+    ], COL.body, 0.42);
+  }
+  [[1.05, 0.45, 0], [0.55, 0.55, 1], [0.05, 0.5, 2]].forEach(function(a){ leg(a[0], a[1], 1, a[2]); leg(a[0], a[1], -1, a[2]); });
+  polyline([[2.28, 0.18, -0.1], [2.5, 0.36, -0.22], [2.58, 0.34, -0.3]], COL.body, 0.5);   // antennae
+  polyline([[2.28, 0.18, 0.1], [2.5, 0.36, 0.22], [2.58, 0.34, 0.3]], COL.body, 0.5);
+  polyline([[2.1, -0.28, 0], [2.08, -0.5, 0], [2.02, -0.66, 0]], COL.body, 0.45);           // proboscis
+  polyline([[1.35, -0.05, 0], [1.2, -0.12, 0]], COL.body, 0.0);                             // (neck guide, invisible)
+
+  /* ---------- soma cloud ---------- */
+  var P = [], T = [], PH = [], SZ = [];
+  function blob(cx, cy, cz, rx, ry, rz, n, typer, rind){
+    for (var i = 0; i < n; i++){
+      var u = Math.random() * 2 - 1, th = Math.random() * Math.PI * 2;
+      var s = Math.sqrt(1 - u * u);
+      var r = Math.pow(Math.random(), rind);  // rind: small exponent = surface heavy
+      P.push(cx + rx * r * s * Math.cos(th), cy + ry * r * u, cz + rz * r * s * Math.sin(th));
+      T.push(typer ? typer() : 0);
+      PH.push(Math.random());
+      SZ.push(0.028 + Math.random() * 0.04);
+    }
+  }
+  blob(1.78, 0.06, 0, 0.3, 0.3, 0.36, 15000, null, 0.3);           // central brain
+  blob(1.8, 0.11, -0.4, 0.2, 0.24, 0.14, 5500, null, 0.35);        // right optic lobe
+  blob(1.8, 0.11, 0.4, 0.2, 0.24, 0.14, 5500, null, 0.35);         // left optic lobe
+  blob(1.74, 0.2, -0.13, 0.08, 0.07, 0.07, 900, null, 0.8);        // mushroom bodies
+  blob(1.74, 0.2, 0.13, 0.08, 0.07, 0.07, 900, null, 0.8);
+  blob(1.74, -0.2, 0, 0.2, 0.12, 0.2, 3600, function(){ var q = Math.random(); return q < 0.34 ? 1 : q < 0.68 ? 2 : 0; }, 0.4);  // SEZ with GRN terminals
+  blob(0.5, -0.16, 0, 0.72, 0.13, 0.2, 7000, null, 0.35);          // VNC
+  blob(0.95, -0.18, -0.45, 0.12, 0.09, 0.1, 600, null, 0.5);       // leg neuropils
+  blob(0.95, -0.18, 0.45, 0.12, 0.09, 0.1, 600, null, 0.5);
+  blob(0.5, -0.18, -0.5, 0.12, 0.09, 0.1, 600, null, 0.5);
+  blob(0.5, -0.18, 0.5, 0.12, 0.09, 0.1, 600, null, 0.5);
+  blob(0.05, -0.18, -0.45, 0.12, 0.09, 0.1, 600, null, 0.5);
+  blob(0.05, -0.18, 0.45, 0.12, 0.09, 0.1, 600, null, 0.5);
+  for (var k = 0; k < 500; k++){                                   // neck connective
+    var t = k / 500;
+    P.push(1.48 - t * 0.33 + (Math.random() - 0.5) * 0.04, -0.05 - t * 0.09 + (Math.random() - 0.5) * 0.05, (Math.random() - 0.5) * 0.07);
+    T.push(0); PH.push(Math.random()); SZ.push(0.022 + Math.random() * 0.025);
+  }
+  document.getElementById('somas').textContent = (P.length / 3).toLocaleString();
+
+  var cloud = new THREE.BufferGeometry();
+  cloud.setAttribute('position', new THREE.Float32BufferAttribute(P, 3));
+  cloud.setAttribute('aType', new THREE.Float32BufferAttribute(T, 1));
+  cloud.setAttribute('aPhase', new THREE.Float32BufferAttribute(PH, 1));
+  cloud.setAttribute('aSize', new THREE.Float32BufferAttribute(SZ, 1));
+  var U = {
+    uTime: {value: 0}, uSugarT: {value: -99}, uBitterT: {value: -99}, uActivity: {value: reduced ? 0.35 : 1},
+    uPR: {value: renderer.getPixelRatio()},
+    cNeuron: {value: new THREE.Color(COL.neuron)}, cSugar: {value: new THREE.Color(COL.sugar)}, cBitter: {value: new THREE.Color(COL.bitter)}
+  };
+  var mat = new THREE.ShaderMaterial({
+    uniforms: U, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+    vertexShader: [
+      'attribute float aType; attribute float aPhase; attribute float aSize;',
+      'uniform float uTime, uSugarT, uBitterT, uActivity, uPR;',
+      'uniform vec3 cNeuron, cSugar, cBitter;',
+      'varying vec3 vColor; varying float vB;',
+      'void main(){',
+      '  float f = 1.0 + fract(aPhase * 13.7) * 2.6;',
+      '  float tw = 0.5 + 0.5 * sin(uTime * f + aPhase * 6.2831853);',
+      '  float spike = pow(tw, 12.0) * uActivity;',
+      '  float sb = 0.0, bb = 0.0;',
+      '  if (aType > 0.5 && aType < 1.5) sb = exp(-max(uTime - uSugarT, 0.0) * 1.5);',
+      '  if (aType > 1.5) bb = exp(-max(uTime - uBitterT, 0.0) * 1.5);',
+      '  vec3 col = mix(cNeuron, cSugar, sb); col = mix(col, cBitter, bb);',
+      '  vColor = col; vB = 0.16 + spike * 1.3 + (sb + bb) * 1.8;',
+      '  vec4 mv = modelViewMatrix * vec4(position, 1.0);',
+      '  gl_PointSize = aSize * (1.0 + spike * 1.2 + (sb + bb) * 1.8) * uPR * (180.0 / -mv.z);',
+      '  gl_Position = projectionMatrix * mv;',
+      '}'
+    ].join('\n'),
+    fragmentShader: [
+      'varying vec3 vColor; varying float vB;',
+      'void main(){',
+      '  vec2 d = gl_PointCoord - 0.5; float r = length(d);',
+      '  if (r > 0.5) discard;',
+      '  float a = smoothstep(0.5, 0.08, r);',
+      '  gl_FragColor = vec4(vColor * vB, a * min(1.0, 0.06 + vB * 0.25));',
+      '}'
+    ].join('\n')
+  });
+  var points = new THREE.Points(cloud, mat);
+  points.renderOrder = 2; fly.add(points);
+
+  /* ---------- DNg100 ---------- */
+  var dnCurve = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(1.86, 0.14, 0.1), new THREE.Vector3(1.7, 0.02, 0.05), new THREE.Vector3(1.5, -0.06, 0.02),
+    new THREE.Vector3(1.18, -0.13, 0.01), new THREE.Vector3(0.7, -0.17, 0.02), new THREE.Vector3(0.2, -0.19, 0.03), new THREE.Vector3(-0.15, -0.2, 0.04)
+  ]);
+  var dnLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints(dnCurve.getPoints(90)), new THREE.LineBasicMaterial({color: COL.dn, transparent: true, opacity: 0.55}));
+  dnLine.renderOrder = 1; fly.add(dnLine);
+  function dotTexture(){
+    var c = document.createElement('canvas'); c.width = c.height = 64;
+    var x = c.getContext('2d'); var g = x.createRadialGradient(32, 32, 0, 32, 32, 32);
+    g.addColorStop(0, 'rgba(255,255,255,1)'); g.addColorStop(0.35, 'rgba(255,255,255,0.6)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+    x.fillStyle = g; x.fillRect(0, 0, 64, 64);
+    var tx = new THREE.CanvasTexture(c); return tx;
+  }
+  var dotTex = dotTexture();
+  var pulseGeo = new THREE.BufferGeometry().setFromPoints([dnCurve.getPoint(0)]);
+  var pulse = new THREE.Points(pulseGeo, new THREE.PointsMaterial({size: 0.34, map: dotTex, color: COL.dn, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true}));
+  pulse.renderOrder = 3; fly.add(pulse);
+  var soma = new THREE.Points(new THREE.BufferGeometry().setFromPoints([dnCurve.getPoint(0)]), new THREE.PointsMaterial({size: 0.16, map: dotTex, color: COL.dn, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false}));
+  soma.renderOrder = 3; fly.add(soma);
+
+  /* ---------- sizing ---------- */
+  function resize(){
+    var w = stage.clientWidth, h = stage.clientHeight;
+    if (!w || !h) return;
+    renderer.setSize(w, h, false);
+    camera.aspect = w / h;
+    var dist = 7.6 * Math.max(1, 1.55 / camera.aspect);
+    camera.position.set(0, 0.9, dist);
+    camera.lookAt(0, -0.05, 0);
+    camera.updateProjectionMatrix();
+  }
+  resize();
+  if (window.ResizeObserver) new ResizeObserver(resize).observe(stage); else window.addEventListener('resize', resize);
+
+  /* ---------- interaction ---------- */
+  var dragging = false, lastX = 0, lastY = 0, idleSince = 0, yawVel = 0;
+  canvas.addEventListener('pointerdown', function(e){ dragging = true; lastX = e.clientX; lastY = e.clientY; canvas.setPointerCapture(e.pointerId); });
+  canvas.addEventListener('pointermove', function(e){
+    if (!dragging) return;
+    var dx = e.clientX - lastX, dy = e.clientY - lastY; lastX = e.clientX; lastY = e.clientY;
+    fly.rotation.y += dx * 0.006; yawVel = dx * 0.006;
+    pivot.rotation.x = Math.max(-0.9, Math.min(0.9, pivot.rotation.x + dy * 0.004));
+  });
+  function endDrag(){ dragging = false; idleSince = now(); }
+  canvas.addEventListener('pointerup', endDrag); canvas.addEventListener('pointercancel', endDrag);
+
+  /* ---------- job loop ---------- */
+  var apps = 0, ints = 0, rejs = 0, running = false, nextAct = 0;
+  var elApps = document.getElementById('apps'), elInts = document.getElementById('ints'), elRejs = document.getElementById('rejs');
+  var log = document.getElementById('log');
+  var mS = document.getElementById('mS'), mB = document.getElementById('mB');
+  var companies = ['Drosophila Dynamics', 'Mushroom Body Capital', 'Optic Lobe Labs', 'Vinegar & Sons', 'Banana Peel Ventures', 'Compost Heap Logistics', 'Ommatidia Analytics', 'Larval Stage', 'Ripe Fruit Partners', 'Petri Dish Systems', 'Fermentation Co.'];
+  var roles = ['Jr Forward Locomotion Analyst', 'Associate Wing Beat Engineer', 'Growth Hacker (Fruit)', 'Sensory Integration Intern', 'Staff Grooming Specialist', 'Head of Vinegar Detection', 'Entry-level Chief of Staff', 'Product Manager, Rotting'];
+  var rejections = ["we've decided to move forward with other flies", 'your profile is not a fit for this larva', 'position filled internally (by a wasp)', 'please retype the résumé you just uploaded', 'thank you for your interest in the compost', 'we were impressed, but', 'after careful consideration'];
+  function pick(a){ return a[Math.floor(Math.random() * a.length)]; }
+  function pad(n){ return (n < 10 ? '0' : '') + n; }
+  function stamp(){ var d = new Date(); return pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds()); }
+  function say(cls, text){
+    var li = document.createElement('li'); li.className = cls; li.textContent = stamp() + '  ' + text;
+    log.appendChild(li);
+    while (log.children.length > 6) log.removeChild(log.firstChild);
+  }
+  function hit(el){ el.classList.add('hit'); void el.offsetWidth; el.classList.remove('hit'); el.style.width = '100%'; requestAnimationFrame(function(){ requestAnimationFrame(function(){ el.style.width = '0%'; }); }); }
+
+  var pulseT = -99;
+  function fireDN(){ pulseT = now(); dnLine.material.opacity = 1; }
+  function sugar(){ U.uSugarT.value = now(); hit(mS); }
+  function bitter(){ U.uBitterT.value = now(); hit(mB); }
+
+  function apply(){
+    fireDN(); apps++; elApps.textContent = apps.toLocaleString();
+    var co = pick(companies), role = pick(roles);
+    say('a', 'DNg100 spike → Easy Apply · ' + role + ' @ ' + co);
+    var delay = 1400 + Math.random() * 3200;
+    var interview = Math.random() < 0.06;
+    setTimeout(function(){
+      if (interview){
+        ints++; elInts.textContent = ints; sugar();
+        say('s', 'INTERVIEW · ' + co + ' · sugar GRNs on');
+        if (ints === 1) setTimeout(function(){ say('w', 'callback received. (you: 0)'); }, 900);
+      } else {
+        rejs++; elRejs.textContent = rejs; bitter();
+        var mins = 2 + Math.floor(Math.random() * 8);
+        say('b', 'REJECTED after ' + mins + ' min · "' + pick(rejections) + '"');
+      }
+    }, delay);
+  }
+  document.getElementById('btnRun').addEventListener('click', function(){
+    running = !running; this.setAttribute('aria-pressed', String(running)); this.textContent = running ? 'Pause the job loop' : 'Run the job loop';
+    say('w', running ? 'loop running · 1 action / 700 ms max' : 'loop paused');
+    if (running) nextAct = now();
+  });
+  document.getElementById('btnDn').addEventListener('click', function(){ fireDN(); say('a', 'DNg100 spike (manual)'); });
+  document.getElementById('btnSugar').addEventListener('click', function(){ sugar(); say('s', 'sugar GRNs stimulated · 500 ms'); });
+  document.getElementById('btnBitter').addEventListener('click', function(){ bitter(); say('b', 'bitter GRNs stimulated · 500 ms'); });
+
+  /* ---------- loop ---------- */
+  var t0 = performance.now();
+  function now(){ return (performance.now() - t0) / 1000; }
+  var prev = now();
+  function frame(){
+    var t = now(), dt = Math.min(0.05, t - prev); prev = t;
+    U.uTime.value = t;
+    if (running && apps < 1000 && t >= nextAct){ apply(); nextAct = t + 0.7 + Math.random() * 0.5; }
+    if (running && apps >= 1000){ running = false; var b = document.getElementById('btnRun'); b.setAttribute('aria-pressed', 'false'); b.textContent = 'Run the job loop'; say('w', '1,000 applications. it can rest now.'); }
+    // DN pulse travels soma → VNC over 0.6 s
+    var age = t - pulseT;
+    if (age >= 0 && age < 0.8){
+      var u = Math.min(1, age / 0.6);
+      var p = dnCurve.getPoint(u);
+      pulseGeo.attributes.position.setXYZ(0, p.x, p.y, p.z); pulseGeo.attributes.position.needsUpdate = true;
+      pulse.material.opacity = age < 0.6 ? 1 : 1 - (age - 0.6) / 0.2;
+    } else pulse.material.opacity = 0;
+    dnLine.material.opacity += (0.55 - dnLine.material.opacity) * Math.min(1, dt * 3);
+    // idle auto-rotate
+    if (!dragging && !reduced && t - idleSince > 2.5) fly.rotation.y += dt * 0.14;
+    else if (!dragging) { fly.rotation.y += yawVel; yawVel *= 0.9; }
+    renderer.render(scene, camera);
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>

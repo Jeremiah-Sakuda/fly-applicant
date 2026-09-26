@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fly Applicant · Studio</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    --bg:#0a0c11; --stage:#07080c; --panel:#12151d; --line:#252b38; --line2:#323a4a;
+    --text:#e9e5d9; --muted:#8f95a5; --dim:#5c6273;
+    --neuron:#5cc8e6; --dn:#9bff6b; --sugar:#ffc44d; --bitter:#ff5c8a; --inmail:#7fd4ff; --wd:#8fa6e0;
+    --display:'Bricolage Grotesque','Helvetica Neue',Arial,sans-serif;
+    --body:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,monospace;
+    color-scheme:dark;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font-family:var(--body);-webkit-font-smoothing:antialiased;overflow:hidden}
+  [hidden]{display:none!important}
+  .shell{height:100%;display:grid;place-items:center;gap:10px;padding:10px}
+  .stage{position:relative;height:min(100%, calc((100vw - 20px) * 16 / 9));aspect-ratio:9/16;max-width:100%;background:var(--stage);overflow:hidden;border:1px solid var(--line);border-radius:6px;container-type:size}
+  body.rec .shell{padding:0}
+  body.rec .stage{height:100%;border:0;border-radius:0}
+  canvas{display:block;width:100%;height:100%}
+  .hud{position:absolute;inset:0;pointer-events:none;font-family:var(--mono);font-size:2.3cqw;line-height:1.35}
+  .hud::before{content:'';position:absolute;left:0;right:0;top:0;height:30cqw;background:linear-gradient(to bottom,rgba(7,8,12,.82),rgba(7,8,12,.55) 55%,rgba(7,8,12,0))}
+  .tl{position:absolute;left:4cqw;top:3.2cqw;color:var(--muted)}
+  .tl b{display:flex;align-items:center;gap:1.6cqw;color:var(--text);font-weight:500}
+  .tl b i{width:1.6cqw;height:1.6cqw;border-radius:50%;background:#ff3b3b;box-shadow:0 0 1.6cqw #ff3b3b;animation:blink 1.4s steps(2) infinite}
+  @keyframes blink{50%{opacity:.25}}
+  .tl .spk{font-variant-numeric:tabular-nums;color:var(--neuron)}
+  .tr{position:absolute;right:4cqw;top:3cqw;text-align:right}
+  .tr .lab{color:var(--muted);letter-spacing:.12em;text-transform:uppercase;font-size:2cqw}
+  .tr .n{font-family:var(--display);font-weight:700;font-size:10cqw;line-height:.95;letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:var(--text)}
+  .tr .n small{font-size:.36em;color:var(--dim);font-weight:500;letter-spacing:0}
+  .tr .sub{color:var(--muted);margin-top:.8cqw}
+  .tr .sub .s{color:var(--sugar)} .tr .sub .b{color:var(--bitter)}
+  .toasts{position:absolute;left:4cqw;right:4cqw;top:21cqw;display:flex;flex-direction:column;gap:1.8cqw}
+  .toast{background:rgba(18,21,29,.9);border:1px solid var(--line2);border-left:1.1cqw solid var(--bitter);border-radius:1.4cqw;padding:2.2cqw 2.8cqw;display:grid;gap:.6cqw;font-family:var(--body);font-size:3.1cqw;line-height:1.3;animation:tin .35s cubic-bezier(.2,.9,.3,1.2);transition:opacity .5s,transform .5s;backdrop-filter:blur(6px)}
+  .toast.out{opacity:0;transform:translateY(-3cqw)}
+  .toast .from{display:flex;justify-content:space-between;gap:2cqw;font-weight:600;font-size:2.8cqw}
+  .toast .from span:last-child{font-family:var(--mono);font-weight:400;color:var(--muted);font-size:2.3cqw;white-space:nowrap}
+  .toast p{margin:0;color:var(--text)}
+  .toast .tag{font-family:var(--mono);font-size:2.1cqw;color:var(--bitter)}
+  .toast.int{border-left-color:var(--sugar)} .toast.int .tag{color:var(--sugar)}
+  .toast.inm{border-left-color:var(--inmail)} .toast.inm .tag{color:var(--inmail)}
+  .toast.wd{border-left-color:var(--wd)} .toast.wd .tag{color:var(--wd)}
+  .toast.done{border-left-color:var(--dn)} .toast.done .tag{color:var(--dn)}
+  @keyframes tin{from{opacity:0;transform:translateY(-4cqw) scale(.97)}}
+  .legend{position:absolute;left:4cqw;bottom:4cqw;display:grid;gap:.7cqw;color:var(--muted);font-size:2.1cqw}
+  .legend span{display:flex;align-items:center;gap:1.4cqw}
+  .legend i{width:1.5cqw;height:1.5cqw;border-radius:50%;background:currentColor;box-shadow:0 0 1.4cqw currentColor}
+  .shot{position:absolute;right:4cqw;bottom:4cqw;color:var(--dim);font-size:2.1cqw;letter-spacing:.1em;text-transform:uppercase}
+  body.rec .legend, body.rec .shot{display:none}
+  .ctl{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;max-width:560px}
+  body.rec .ctl{display:none}
+  .shell:has(.ctl:not([hidden])){grid-template-rows:1fr auto}
+  .btn{font:500 12px/1 var(--mono);letter-spacing:.04em;color:var(--text);background:var(--panel);border:1px solid var(--line2);border-radius:4px;padding:9px 11px;cursor:pointer}
+  .btn:hover{border-color:var(--muted)}
+  .btn:focus-visible{outline:2px solid var(--sugar);outline-offset:2px}
+  .btn.run{border-color:var(--sugar);color:var(--sugar)}
+  .btn.run[aria-pressed="true"]{background:var(--sugar);color:#1a1200}
+  .btn[aria-pressed="true"]:not(.run){border-color:var(--text)}
+  .btn.sg{color:var(--sugar)} .btn.bt{color:var(--bitter)}
+  .boot{position:absolute;inset:0;display:grid;place-items:center;font-family:var(--mono);font-size:2.6cqw;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="shell">
+  <div class="stage" id="stage">
+    <canvas id="c"></canvas>
+    <div class="boot" id="boot">loading 166,700 neurons…</div>
+    <div class="hud">
+      <div class="tl">
+        <b><i></i>MaleCNS v1.0 · live</b>
+        166,700 neurons · 25.6M connections<br>
+        <span class="spk" id="spk">0</span> spiking / 20 ms
+      </div>
+      <div class="tr">
+        <div class="lab">Applications today</div>
+        <div class="n"><span id="apps">0</span><small> / 1,000</small></div>
+        <div class="sub"><span class="s" id="ints">0</span> interviews · <span class="b" id="rejs">0</span> rejections</div>
+      </div>
+      <div class="toasts" id="toasts" aria-live="polite"></div>
+      <div class="legend">
+        <span style="color:var(--neuron)"><i></i>neuron soma (real position)</span>
+        <span style="color:var(--dn)"><i></i>DNg100 → click</span>
+        <span style="color:var(--sugar)"><i></i>sugar GRNs · LB3c</span>
+        <span style="color:var(--bitter)"><i></i>bitter GRNs · LB1a–d</span>
+      </div>
+      <div class="shot" id="shotLabel">auto</div>
+    </div>
+  </div>
+  <div class="ctl" id="ctl">
+    <button class="btn run" id="bRun" type="button" aria-pressed="false">Start applying</button>
+    <button class="btn" data-shot="auto" type="button" aria-pressed="true">Auto</button>
+    <button class="btn" data-shot="desk" type="button" aria-pressed="false">Desk</button>
+    <button class="btn" data-shot="screen" type="button" aria-pressed="false">Screen</button>
+    <button class="btn" data-shot="brain" type="button" aria-pressed="false">Brain</button>
+    <button class="btn sg" id="bSugar" type="button">Sugar</button>
+    <button class="btn bt" id="bBitter" type="button">Bitter</button>
+  </div>
+</div>
+<script src="vendor/three.min.js"></script>
+<script src="studio.js"></script>
+</body>
+</html>

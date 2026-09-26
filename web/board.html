@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Hatchery · Jobs</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    --bg:#eef1f6; --card:#ffffff; --ink:#10131a; --muted:#5d6475; --dim:#98a0b0; --line:#dde2eb;
+    --amber:#ffb020; --amber-ink:#2a1800; --pink:#e5356b; --green:#1f9d55; --cyan:#1b8fb4; --nav:#10131a;
+    --display:'Bricolage Grotesque','Helvetica Neue',Arial,sans-serif;
+    --body:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+    --mono:'IBM Plex Mono',ui-monospace,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  [hidden]{display:none!important}
+  html,body{margin:0;height:100%;overflow:hidden}
+  body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:18px;-webkit-font-smoothing:antialiased;cursor:none}
+  .app{display:grid;grid-template-rows:auto auto 1fr;height:100vh}
+  nav{background:var(--nav);color:#e9e5d9;padding:18px 28px;display:flex;align-items:center;gap:26px}
+  .logo{font-family:var(--display);font-weight:700;font-size:34px;letter-spacing:-.02em;display:flex;align-items:center;gap:10px}
+  .logo i{width:16px;height:16px;border-radius:50%;background:var(--amber);box-shadow:0 0 14px var(--amber)}
+  .navitem{font-size:19px;color:#aab0bf;display:flex;justify-content:space-between;align-items:center}
+  .navitem.on{color:#fff;font-weight:600}
+  .navitem b{font-family:var(--mono);font-weight:500;font-size:15px;background:#252b38;border-radius:20px;padding:2px 10px;color:#fff}
+  .navitem b.pink{background:var(--pink)}
+  .me{margin-left:auto;display:grid;gap:2px;font-size:14px;color:#aab0bf;text-align:right}
+  .me strong{color:#fff;font-size:17px}
+  .me span{font-family:var(--mono);font-size:13px}
+  main{padding:22px 28px 10px;display:flex;flex-direction:column;gap:14px;overflow:hidden}
+  .search{display:flex;gap:10px;align-items:center;font-family:var(--mono);font-size:15px;color:var(--muted)}
+  .search div{flex:1;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:11px 14px}
+  .counter{font-family:var(--mono);font-size:15px;color:var(--muted);white-space:nowrap}
+  .counter b{font-family:var(--display);font-size:26px;color:var(--ink);font-variant-numeric:tabular-nums}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:28px 30px;display:flex;flex-direction:column;gap:16px;position:relative;transition:transform .2s ease,opacity .2s ease}
+  .card.out{transform:translateY(-30px);opacity:0}
+  .card.in{transform:translateY(30px);opacity:0;transition:none}
+  .co{display:flex;align-items:center;gap:14px;font-size:20px;font-weight:600}
+  .co .av{width:48px;height:48px;border-radius:10px;display:grid;place-items:center;font-family:var(--display);font-weight:700;color:#fff;font-size:24px}
+  .co small{display:block;font-weight:400;color:var(--muted);font-size:15px}
+  h1{font-family:var(--display);font-weight:700;font-size:42px;line-height:1.05;letter-spacing:-.02em;margin:0;text-wrap:balance}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{font-size:15px;border:1px solid var(--line);border-radius:20px;padding:4px 12px;color:var(--muted)}
+  .chip.sal{color:var(--ink);font-weight:600}
+  ul.req{margin:0;padding-left:22px;color:var(--muted);display:grid;gap:4px;font-size:17px}
+  .row{display:flex;align-items:center;gap:16px;margin-top:6px}
+  .easy{font-family:var(--display);font-weight:700;font-size:34px;letter-spacing:-.01em;background:var(--amber);color:var(--amber-ink);border:0;border-radius:14px;padding:18px 44px;cursor:none;box-shadow:0 6px 0 #c98200;transition:transform .08s}
+  .easy:active,.easy.pressed{transform:translateY(5px);box-shadow:0 1px 0 #c98200}
+  .row small{font-family:var(--mono);font-size:14px;color:var(--dim)}
+  .stamp{position:absolute;right:28px;top:26px;font-family:var(--display);font-weight:700;font-size:30px;color:var(--green);border:4px solid var(--green);border-radius:8px;padding:2px 14px;transform:rotate(-8deg);opacity:0}
+  .stamp.show{opacity:1}
+  .next{display:grid;gap:8px}
+  .next .mini:nth-child(n+3){display:none}
+  .next .mini{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:12px 16px;display:flex;justify-content:space-between;font-size:16px;color:var(--muted)}
+  .next .mini b{color:var(--ink);font-weight:600}
+  aside{background:#fff;border-top:1px solid var(--line);padding:18px 28px;display:flex;flex-direction:column;gap:10px;overflow:hidden}
+  aside h2{font-family:var(--display);font-size:24px;margin:0;display:flex;justify-content:space-between;align-items:baseline}
+  aside h2 span{font-family:var(--mono);font-size:13px;color:var(--muted);font-weight:400}
+  .mail{border:1px solid var(--line);border-radius:10px;padding:11px 13px;display:grid;gap:3px;font-size:15px;animation:drop .4s ease}
+  .mail .from{display:flex;justify-content:space-between;font-weight:600;font-size:15px}
+  .mail .from time{font-family:var(--mono);font-weight:400;font-size:12px;color:var(--dim)}
+  .mail p{margin:0;color:var(--muted);line-height:1.35}
+  .mail.rej{border-left:5px solid var(--pink)}
+  .mail.int{border-left:5px solid var(--amber);background:#fff8e6}
+  .mail.inm{border-left:5px solid var(--cyan)}
+  @keyframes drop{from{transform:translateY(-14px);opacity:0}to{transform:none;opacity:1}}
+  /* Workdaze parody portal */
+  .wd{position:fixed;inset:0;background:rgba(16,19,26,.55);display:grid;place-items:center}
+  .wd .box{width:820px;background:#fff;border-radius:6px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+  .wd header{background:#2b4a8b;color:#fff;padding:14px 22px;font-family:var(--display);font-weight:700;font-size:24px;display:flex;justify-content:space-between;align-items:center}
+  .wd header span{font-family:var(--mono);font-weight:400;font-size:14px;opacity:.85}
+  .wd .inner{padding:22px 26px;display:grid;gap:14px}
+  .wd .steps{display:flex;gap:6px}
+  .wd .steps i{height:6px;flex:1;background:#dde2eb;border-radius:3px}
+  .wd .steps i.done{background:#2b4a8b}
+  .wd label{font-weight:600;font-size:19px}
+  .wd .hint{font-size:15px;color:var(--muted)}
+  .wd textarea{font-family:var(--mono);font-size:22px;height:120px;border:2px solid #2b4a8b;border-radius:4px;padding:10px;resize:none;cursor:none}
+  .wd .btns{display:flex;justify-content:flex-end;gap:10px}
+  .wd button{font-size:18px;font-weight:600;padding:12px 26px;border-radius:4px;border:1px solid #2b4a8b;background:#fff;color:#2b4a8b;cursor:none}
+  .wd button.go{background:#2b4a8b;color:#fff}
+  .wd .err{color:var(--pink);font-weight:600;font-size:18px}
+  /* the fly's cursor */
+  #cursor{position:fixed;left:0;top:0;width:34px;height:34px;pointer-events:none;z-index:99;transform:translate(-6px,-4px);transition:left .12s ease-out,top .12s ease-out}
+  #cursor svg{width:100%;height:100%;filter:drop-shadow(0 2px 3px rgba(0,0,0,.35))}
+  .ripple{position:fixed;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;border:3px solid var(--amber);pointer-events:none;z-index:98;animation:rip .5s ease-out forwards}
+  @keyframes rip{to{transform:scale(4);opacity:0}}
+</style>
+</head>
+<body>
+<div class="app">
+  <nav>
+    <div class="logo"><i></i>Hatchery</div>
+    <div class="navitem on">Jobs</div>
+    <div class="navitem">Applied <b id="navApplied">0</b></div>
+    <div class="navitem">Inbox <b class="pink" id="navInbox">0</b></div>
+    <div class="navitem">Interviews <b id="navInt">0</b></div>
+    <div class="me"><strong>D. melanogaster</strong><span>Open to work · 166,700 neurons</span><span>9 days old</span></div>
+  </nav>
+  <main>
+    <div class="search"><div>Search: anything · Remote · Entry level · Easy Apply</div><span class="counter">today <b id="count">0</b> / 1,000</span></div>
+    <div class="card" id="card">
+      <div class="co"><div class="av" id="av">D</div><div><span id="company">Loading</span><small id="meta">&nbsp;</small></div></div>
+      <h1 id="role">Finding postings</h1>
+      <div class="chips" id="chips"></div>
+      <ul class="req" id="reqs"></ul>
+      <div class="row"><button class="easy" id="easy" data-fly="primary" type="button">Easy Apply</button><small id="appl">&nbsp;</small></div>
+      <div class="stamp" id="stamp">APPLIED</div>
+    </div>
+    <div class="next" id="next"></div>
+  </main>
+  <aside>
+    <h2>Inbox <span id="inboxMeta">0 unread</span></h2>
+    <div id="mails"></div>
+  </aside>
+</div>
+<div class="wd" id="wd" hidden>
+  <div class="box">
+    <header>Workdaze <span id="wdCo">Careers portal</span></header>
+    <div class="inner">
+      <div class="steps" id="wdSteps"></div>
+      <label for="wdText">Work experience</label>
+      <div class="hint">Please re-enter your résumé exactly as it appears in the résumé you just uploaded.</div>
+      <textarea id="wdText" spellcheck="false"></textarea>
+      <div class="err" id="wdErr" hidden>Your session has expired. Please create a new account.</div>
+      <div class="btns"><button type="button">Save draft</button><button class="go" id="wdGo" type="button">Submit</button></div>
+    </div>
+  </div>
+</div>
+<div id="cursor"><svg viewBox="0 0 34 34"><path d="M6 4 L6 28 L12 22 L16 31 L20 29 L16 20 L25 20 Z" fill="#ffb020" stroke="#10131a" stroke-width="2" stroke-linejoin="round"/></svg></div>
+<script src="board.js"></script>
+</body>
+</html>

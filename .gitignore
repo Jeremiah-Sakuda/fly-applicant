@@ -1,0 +1,10 @@
+.venv/
+data/
+out/
+vendor/
+__pycache__/
+*.pyc
+.pytest_cache/
+dist/
+.DS_Store
+.vercel/
